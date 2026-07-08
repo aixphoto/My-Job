@@ -24,7 +24,7 @@ const jobsData = [
         subcategories: [ { id: "3d-food", title: "3D 푸드 프린팅 파티시에" }, { id: "smart-farm", title: "스마트 팜 셰프" }, { id: "fusion-master", title: "전통 한식 퓨전 마스터" }, { id: "molecular", title: "분자 요리 전문가" } ]
     },
     {
-        id: "robotics", title: "로봇 공학자 / AI 전문가", image: "assets/main_robotics.jpg",
+        id: "robotics", title: "로봇 공학자", image: "assets/main_robotics.jpg",
         subcategories: [ { id: "ai-core", title: "AI 코어 엔지니어" }, { id: "robot-mech", title: "휴머노이드 메카트로닉스" }, { id: "agi", title: "AGI 연구원" }, { id: "ethics", title: "AI 윤리 검증관" } ]
     },
     {
@@ -40,7 +40,7 @@ const jobsData = [
         subcategories: [ { id: "weather", title: "기후 조절 마스터" }, { id: "carbon", title: "탄소 포집 기술자" }, { id: "ocean", title: "해양 산성화 복원가" }, { id: "eco-city", title: "친환경 공중 도시 설계자" } ]
     },
     {
-        id: "vr-architect", title: "가상현실(VR) 건축가", image: "assets/main_vr_architect.jpg",
+        id: "vr-architect", title: "가상현실 개발자", image: "assets/main_vr_architect.jpg",
         subcategories: [ { id: "world", title: "가상 세계 렌더러" }, { id: "haptic", title: "햅틱 감각 디자이너" }, { id: "historical", title: "과거 시대 복원 건축가" }, { id: "fantasy", title: "판타지 랜드마크 디자이너" } ]
     }
 ];
