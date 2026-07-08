@@ -1,6 +1,6 @@
 // === Configuration ===
 // 실제 fal.ai API를 사용하려면 아래 키를 입력하세요. 비어있을 경우 시뮬레이션으로 동작합니다.
-const FAL_API_KEY = ""; 
+const FAL_API_KEY = "2a98cd6e-47ed-454e-9ae7-c46363f1b55d:5ec620e1e080e837016cbc96bd02fb1d"; 
 
 const jobsData = [
     {
@@ -490,6 +490,11 @@ async function callFalApi() {
     }, 500);
 
     try {
+        const targetPath = state.selectedSubcategory.image || state.selectedCategory.image;
+        const targetAbsoluteUrl = new URL(targetPath, window.location.href).href;
+        
+        console.log("AI 합성 요청 전송중...", { targetAbsoluteUrl });
+
         const response = await fetch("https://fal.run/fal-ai/face-swap", {
             method: "POST",
             headers: {
@@ -498,7 +503,7 @@ async function callFalApi() {
             },
             body: JSON.stringify({
                 swap_image_url: state.imageData, 
-                target_image_url: state.selectedSubcategory.image || state.selectedCategory.image
+                target_image_url: targetAbsoluteUrl
             })
         });
 
