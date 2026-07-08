@@ -5,7 +5,7 @@ const FAL_API_KEY = "";
 const jobsData = [
     {
         id: "athlete", title: "국가대표 운동선수", image: "assets/main_athlete.jpg",
-        subcategories: [ { id: "taekwondo", title: "태권도", image: "assets/sub_taekwondo.jpg" }, { id: "soccer", title: "미래 축구선수" }, { id: "esports", title: "e-스포츠", image: "assets/sub_esports.jpg" }, { id: "baseball", title: "스마트 야구선수" } ]
+        subcategories: [ { id: "taekwondo", title: "태권도", image: "assets/sub_taekwondo.jpg" }, { id: "soccer", title: "축구선수" }, { id: "esports", title: "e-스포츠", image: "assets/sub_esports.jpg" }, { id: "baseball", title: "야구선수" } ]
     },
     {
         id: "doctor", title: "스마트 병원 전문의", image: "assets/main_doctor.jpg",
