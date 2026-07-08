@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wannabee - AI 미래 직업 프로필</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <!-- QR Code Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+    <!-- Background Elements -->
+    <div class="bg-glow bg-glow-blue"></div>
+    <div class="bg-glow bg-glow-purple"></div>
+    <div class="cyber-grid"></div>
+
+    <!-- Start Overlay to allow audio playback -->
+    <div id="start-overlay" class="start-overlay">
+        <h1>WANNA<span class="neon-text">BEE</span></h1>
+        <p>화면을 클릭하여 마술상자를 열어주세요.</p>
+        <button id="btn-start-app" class="cyber-btn primary">시작하기</button>
+    </div>
+
+    <!-- Main App UI (Hidden during print) -->
+    <div class="app-container no-print" id="app-container" style="display: none;">
+        <header>
+            <h1 class="logo">WANNA<span class="neon-text">BEE</span></h1>
+            <p class="subtitle">AI Future Profession Profile Generator</p>
+        </header>
+
+        <main>
+            <!-- Step 1: Main Category Selection -->
+            <section id="step-category" class="glass-panel active">
+                <h2>1. 미래 직업 선택</h2>
+                <p>당신의 꿈을 실현할 직업 유니버스를 선택하세요.</p>
+                <div class="job-grid grid-2-rows" id="category-grid"></div>
+            </section>
+
+            <!-- Step 2: Subcategory Selection -->
+            <section id="step-subcategory" class="glass-panel hidden">
+                <div class="section-header">
+                    <button class="btn-back cyber-btn" id="btn-back-to-cat">&larr; 직업 다시 선택</button>
+                    <h2>2. 세부 전공 선택</h2>
+                </div>
+                <p>선택한 분야: <strong id="selected-category-name" class="neon-text"></strong></p>
+                <div class="job-grid sub-grid" id="subcategory-grid"></div>
+            </section>
+
+            <!-- Step 3: Camera Capture -->
+            <section id="step-capture" class="glass-panel hidden">
+                <div class="section-header">
+                    <button class="btn-back cyber-btn" id="btn-back-to-sub">&larr; 세부 전공 다시 선택</button>
+                    <h2>3. 사진 촬영</h2>
+                </div>
+                <p id="camera-instruction">당신의 얼굴이 잘 나오도록 정면을 응시해주세요. 촬영 버튼을 누르면 7초 후 자동 촬영됩니다.</p>
+                
+                <div class="camera-container">
+                    <div id="countdown-overlay" class="countdown-overlay hidden">7</div>
+                    <video id="webcam" autoplay playsinline></video>
+                    <canvas id="canvas" style="display: none;"></canvas>
+                    <img id="photo-preview" style="display: none;" alt="Captured preview">
+                    <div class="camera-overlay" id="camera-overlay">
+                        <div class="face-guide"></div>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button id="btn-capture" class="cyber-btn primary">촬영 시작 (7초 타이머)</button>
+                    <button id="btn-retake" class="cyber-btn hidden">다시 찍기 (남은 횟수: <span id="retake-count">1</span>)</button>
+                    <button id="btn-generate" class="cyber-btn primary hidden">AI 프로필 생성하기</button>
+                </div>
+            </section>
+
+            <!-- Step 4: Loading -->
+            <section id="step-loading" class="glass-panel hidden">
+                <div class="loading-container">
+                    <div class="hologram-loader">
+                        <div class="ring"></div>
+                        <div class="ring"></div>
+                        <div class="ring"></div>
+                    </div>
+                    <h2 class="scanning-text">Generating Magic...</h2>
+                    <p class="progress-detail" id="loading-text">fal.ai API 연결 중...</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Step 5: Result -->
+            <section id="step-result" class="glass-panel hidden">
+                <h2>AI 프로필 생성 완료!</h2>
+                <div class="result-layout">
+                    <div class="result-card">
+                        <div class="result-image-wrapper">
+                            <img id="result-image" alt="Generated AI Profile" style="display: none;">
+                            <div id="result-placeholder" class="result-placeholder">
+                                <span class="cyber-scanline"></span>
+                                <div class="result-overlay-text">SIMULATION</div>
+                            </div>
+                        </div>
+                        <div class="result-info">
+                            <h3 id="result-title">미래 셰프</h3>
+                            <p id="result-desc">3D 푸드 프린팅 파티시에</p>
+                        </div>
+                    </div>
+
+                    <div class="qr-panel">
+                        <p>모바일에서 다운로드</p>
+                        <div id="qrcode" class="qr-code-box"></div>
+                    </div>
+                </div>
+
+                <div class="controls result-controls">
+                    <button id="btn-show-print" class="cyber-btn primary">인쇄하기</button>
+                    <button id="btn-download" class="cyber-btn">PC 다운로드</button>
+                    <button id="btn-restart" class="cyber-btn">처음으로 돌아가기</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Print Quantity Modal -->
+    <div id="print-modal" class="modal hidden no-print">
+        <div class="modal-content glass-panel">
+            <h2>인쇄 매수 선택</h2>
+            <p>몇 장을 인쇄하시겠습니까?</p>
+            <div class="print-options">
+                <button class="cyber-btn print-qty-btn" data-qty="1">1장</button>
+                <button class="cyber-btn print-qty-btn" data-qty="2">2장</button>
+                <button class="cyber-btn print-qty-btn" data-qty="3">3장</button>
+                <button class="cyber-btn print-qty-btn" data-qty="4">4장</button>
+            </div>
+            <button id="btn-close-print" class="cyber-btn btn-close-modal">닫기</button>
+        </div>
+    </div>
+
+    <!-- Santa Final Overlay -->
+    <div id="santa-overlay" class="santa-overlay hidden no-print">
+        <h1 class="santa-text glitch-effect">당신의 소원이 이뤄지길 기원합니다!</h1>
+    </div>
+
+    <!-- Hidden Print Container -->
+    <div id="print-container" class="print-only">
+        <!-- Images injected here for printing -->
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
