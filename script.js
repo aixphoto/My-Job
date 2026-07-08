@@ -337,6 +337,9 @@ async function showCameraCapture() {
     
     speak(`${state.selectedSubcategory.title} 직업을 선택하셨군요. 그럼 당신의 현재 모습을 촬영하겠습니다.`);
 
+    // 자체 중복 락 방지: 기존 스트림이 남아있다면 먼저 완전히 멈춥니다.
+    stopCamera();
+
     try {
         // 카메라 무조건 살리기: 연결된 모든 카메라를 찾아서 될 때까지 시도합니다.
         let stream = null;
@@ -376,7 +379,11 @@ async function showCameraCapture() {
         video.srcObject = state.stream;
     } catch (err) {
         console.error("Camera error:", err);
-        alert(`카메라를 켜는 데 실패했습니다 (${err.name}).\n웹캠 선을 뺐다가 다시 꽂아보시거나, 크롬 브라우저 창을 완전히 껐다가 다시 실행해 주세요! (이 서비스는 카메라가 필수입니다.)`);
+        if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+            alert("카메라 사용 중 오류:\n다른 프로그램(줌, OBS, 디스코드, 또는 크롬 다른 설정 탭 등)이 카메라를 사용 중입니다.\n카메라를 쓰고 있는 다른 프로그램을 종료하신 후 다시 시도해 주세요!");
+        } else {
+            alert(`카메라를 켜는 데 실패했습니다 (${err.name}).\n웹캠 선을 뺐다가 다시 꽂아보시거나, 크롬 브라우저 창을 완전히 껐다가 다시 실행해 주세요!`);
+        }
     }
 }
 
