@@ -546,7 +546,7 @@ async function callFalApi() {
 
         if (!response.ok) {
             const errBody = await response.text();
-            throw new Error(`AI 서버 오류: ${response.status} - ${errBody}`);
+            throw new Error(`AI 서버 오류 (${response.status}): ${errBody}`);
         }
         
         const data = await response.json();
@@ -560,14 +560,32 @@ async function callFalApi() {
             throw new Error("생성된 이미지 URL이 유효하지 않습니다.");
         }
         
+        // 성공 시 어드민 디버그 상태 저장
+        state.apiStatus = "Online";
         setTimeout(showResult, 500);
 
     } catch (error) {
-        console.error("AI 합성 최종 실패:", error);
+        console.error("AI 합성 실패 - 로컬 백업 모드로 자동 전환:", error);
         clearInterval(interval);
-        alert(`AI 합성 서비스 호출에 실패했습니다.\n\n[오류 메시지]\n${error.message}\n\n* API 키의 충전 크레딧이 소진되었거나 서버 상태를 확인해 주세요.`);
-        switchSection(sections.loading, sections.capture); // 촬영 화면으로 복귀
+        
+        // 어드민 진단용 상태 저장 (결과창 구석에 아주 작게 표시)
+        state.apiStatus = `Offline (${error.message})`;
+        
+        // 무정지 백업 모드 실행 (에러 팝업창 없이 부드럽게 로컬 합성본 출력)
+        await runLocalFallbackSynthesis();
     }
+}
+
+async function runLocalFallbackSynthesis() {
+    try {
+        const targetImage = state.selectedSubcategory.image || state.selectedCategory.image;
+        state.generatedImageUrl = await blendFaceWithJobImage(state.imageData, targetImage);
+    } catch (err) {
+        console.error("로컬 백업 합성 실패:", err);
+        state.generatedImageUrl = state.imageData; // 최악의 경우 원본 유지
+    }
+    progressFill.style.width = "100%";
+    setTimeout(showResult, 500);
 }
 
 function simulateGeneration() {
@@ -689,6 +707,19 @@ function showResult() {
         resultPlaceholder.style.filter = "contrast(1.2) saturate(1.5) hue-rotate(15deg)";
         resultImage.style.display = 'none';
         resultPlaceholder.style.display = 'flex';
+    }
+    
+    // 어드민 실시간 진단 태그 노출 (구석에 아주 작게 표시)
+    let debugTag = document.getElementById('debug-status');
+    if (!debugTag) {
+        debugTag = document.createElement('div');
+        debugTag.id = 'debug-status';
+        debugTag.style.cssText = "position: absolute; bottom: 5px; right: 10px; font-size: 10px; color: rgba(0,0,0,0.2); font-family: monospace; pointer-events: none; z-index: 100;";
+        const resultSection = document.getElementById('step-result');
+        if (resultSection) resultSection.appendChild(debugTag);
+    }
+    if (debugTag) {
+        debugTag.innerText = `API: ${state.apiStatus || 'N/A'}`;
     }
     
     generateQR();
