@@ -4,43 +4,43 @@ const FAL_API_KEY = "";
 
 const jobsData = [
     {
-        id: "athlete", title: "국가대표 운동선수", icon: "🏆",
+        id: "athlete", title: "국가대표 운동선수", image: "assets/main_athlete.jpg",
         subcategories: [ { id: "taekwondo", title: "태권도" }, { id: "sudoku", title: "스도쿠 (마인드 스포츠)" }, { id: "esports", title: "e-스포츠" }, { id: "soccer-baseball", title: "축구/야구" } ]
     },
     {
-        id: "doctor", title: "스마트 병원 전문의", icon: "🏥",
+        id: "doctor", title: "스마트 병원 전문의", image: "assets/main_doctor.jpg",
         subcategories: [ { id: "robot-surgeon", title: "로봇 수술 전문 외과의" }, { id: "bioprinting", title: "3D 바이오 프린팅 전문가" }, { id: "space-doctor", title: "우주 항공 전문의" }, { id: "digital-therapist", title: "디지털 심리 치료사" } ]
     },
     {
-        id: "creator", title: "스타 크리에이터", icon: "✨",
+        id: "creator", title: "스타 크리에이터", image: "assets/main_creator.jpg",
         subcategories: [ { id: "short-form", title: "숏폼 미디어 기획자" }, { id: "vtuber", title: "버추얼 유튜버 (V-Tuber)" }, { id: "global-vlogger", title: "글로벌 여행 브이로거" }, { id: "metaverse-pd", title: "메타버스 공연 기획자" } ]
     },
     {
-        id: "police", title: "특수 수사관 / 경찰관", icon: "🕵️",
+        id: "police", title: "특수 수사관 / 경찰관", image: "assets/main_police.jpg",
         subcategories: [ { id: "cyber-security", title: "사이버 보안 수사관" }, { id: "drone-patrol", title: "드론 순찰 경관" }, { id: "csi", title: "과학수사(CSI) 요원" }, { id: "marine-rescue", title: "해양 생태 구조대" } ]
     },
     {
-        id: "chef", title: "미래 셰프 / 파티시에", icon: "👨‍🍳",
+        id: "chef", title: "미래 셰프 / 파티시에", image: "assets/main_chef.jpg",
         subcategories: [ { id: "3d-food", title: "3D 푸드 프린팅 파티시에" }, { id: "smart-farm", title: "스마트 팜 셰프" }, { id: "fusion-master", title: "전통 한식 퓨전 마스터" }, { id: "molecular", title: "분자 요리 전문가" } ]
     },
     {
-        id: "robotics", title: "로봇 공학자 / AI 전문가", icon: "🤖",
+        id: "robotics", title: "로봇 공학자 / AI 전문가", image: "assets/main_robotics.jpg",
         subcategories: [ { id: "ai-core", title: "AI 코어 엔지니어" }, { id: "robot-mech", title: "휴머노이드 메카트로닉스" }, { id: "agi", title: "AGI 연구원" }, { id: "ethics", title: "AI 윤리 검증관" } ]
     },
     {
-        id: "space", title: "우주 탐험가", icon: "🚀",
+        id: "space", title: "우주 탐험가", image: "assets/main_space.jpg",
         subcategories: [ { id: "mars", title: "화성 개척 대원" }, { id: "asteroid", title: "소행성 자원 채굴가" }, { id: "space-pilot", title: "성간 항행 조종사" }, { id: "astro-botany", title: "우주 식물학자" } ]
     },
     {
-        id: "science", title: "생명과학 연구원", icon: "🔬",
+        id: "science", title: "생명과학 연구원", image: "assets/main_science.jpg",
         subcategories: [ { id: "dna", title: "유전자 편집 연구원" }, { id: "neuro", title: "뇌-컴퓨터 인터페이스 개발자" }, { id: "longevity", title: "수명 연장 생물학자" }, { id: "synthetic", title: "합성 생명 창조가" } ]
     },
     {
-        id: "climate", title: "친환경 기후 과학자", icon: "🌍",
+        id: "climate", title: "친환경 기후 과학자", image: "assets/main_climate.jpg",
         subcategories: [ { id: "weather", title: "기후 조절 마스터" }, { id: "carbon", title: "탄소 포집 기술자" }, { id: "ocean", title: "해양 산성화 복원가" }, { id: "eco-city", title: "친환경 공중 도시 설계자" } ]
     },
     {
-        id: "vr-architect", title: "가상현실(VR) 건축가", icon: "🏗️",
+        id: "vr-architect", title: "가상현실(VR) 건축가", image: "assets/main_vr_architect.jpg",
         subcategories: [ { id: "world", title: "가상 세계 렌더러" }, { id: "haptic", title: "햅틱 감각 디자이너" }, { id: "historical", title: "과거 시대 복원 건축가" }, { id: "fantasy", title: "판타지 랜드마크 디자이너" } ]
     }
 ];
@@ -278,7 +278,7 @@ function renderCategories() {
     jobsData.forEach(job => {
         const card = document.createElement('div');
         card.className = 'job-card';
-        card.innerHTML = `<span class="icon">${job.icon}</span><div class="title">${job.title}</div>`;
+        card.innerHTML = `<img src="${job.image}" class="job-image" alt="${job.title}"><div class="title-overlay">${job.title}</div>`;
         card.addEventListener('click', () => {
             state.selectedCategory = job;
             showSubcategorySelection();

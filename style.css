@@ -346,6 +346,40 @@ video, #photo-preview {
     line-height: 1.3;
 }
 
+#category-grid .job-card {
+    padding: 0;
+    justify-content: flex-end;
+    min-height: 180px;
+}
+
+.job-image {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    z-index: 0;
+    opacity: 0.6;
+    transition: all 0.4s ease;
+}
+
+.job-card:hover .job-image {
+    opacity: 1;
+    transform: scale(1.05);
+}
+
+.title-overlay {
+    position: relative;
+    z-index: 1;
+    background: linear-gradient(to top, rgba(5,10,21,0.95) 10%, rgba(5,10,21,0.5) 60%, transparent);
+    width: 100%;
+    padding: 4rem 0.5rem 1rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+    text-align: center;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(0,0,0,0.8);
+}
+
 /* Loading Animation */
 .loading-container {
     text-align: center;
