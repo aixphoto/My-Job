@@ -374,7 +374,9 @@ video, #photo-preview {
     width: 100%;
     padding: 4rem 0.5rem 1rem;
     font-weight: 600;
-    font-size: 1.1rem;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    letter-spacing: -0.5px;
     text-align: center;
     color: #fff;
     text-shadow: 0 0 10px rgba(0,0,0,0.8);
