@@ -543,8 +543,8 @@ function simulateGeneration() {
     }, 500);
 }
 
-// 로컬 합성 엔진: 사용자의 얼굴 이목구비만 타이트하게 크롭하여, 대상 이미지의 머리 크기와 위치에 맞추어 부드럽게 페더링 합성
-function blendFaceWithJobImage(userPhotoUrl, jobImageUrl, faceRect = { x: 0.35, y: 0.22, w: 0.30, h: 0.32 }) {
+// 로컬 합성 엔진: 사용자의 이목구비만 칼같이 추출하여 대상 이미지의 얼굴 위에 투영 및 텍스처 결합
+function blendFaceWithJobImage(userPhotoUrl, jobImageUrl, faceRect = { x: 0.407, y: 0.28, w: 0.178, h: 0.218 }) {
     return new Promise((resolve, reject) => {
         const userImg = new Image();
         const jobImg = new Image();
@@ -559,53 +559,57 @@ function blendFaceWithJobImage(userPhotoUrl, jobImageUrl, faceRect = { x: 0.35, 
                 // 1. 배경 직업 이미지 그리기
                 ctx.drawImage(jobImg, 0, 0, canvas.width, canvas.height);
                 
-                // 2. 사용자 얼굴에서 배경(의자 등)과 머리카락을 제외하고 "이목구비만 타이트하게" 크롭
+                // 2. 촬영 사진에서 눈, 코, 입(이목구비) 영역만 아주 타이트하게 추출
                 const srcCx = userImg.width / 2;
                 const srcCy = userImg.height / 2 - (userImg.height * 0.02);
-                const srcRx = userImg.width * 0.16;  // 좁게 설정하여 의자/귀 차단
-                const srcRy = userImg.height * 0.22; // 좁게 설정하여 머리카락/목 차단
+                
+                // 얼굴 바깥 테두리(볼 외곽, 헤어, 턱 끝)를 전부 날리고 오직 눈/코/입만 가져오도록 반경을 대폭 축소
+                const srcRx = userImg.width * 0.115; 
+                const srcRy = userImg.height * 0.165;
                 
                 const croppedFaceCanvas = document.createElement('canvas');
                 croppedFaceCanvas.width = srcRx * 2;
                 croppedFaceCanvas.height = srcRy * 2;
                 const cfCtx = croppedFaceCanvas.getContext('2d');
                 
-                // 타원형 클리핑 마스크 적용
+                // 타원형 마스크로 이목구비 영역 컷팅
                 cfCtx.beginPath();
                 cfCtx.ellipse(srcRx, srcRy, srcRx, srcRy, 0, 0, 2 * Math.PI);
                 cfCtx.clip();
                 cfCtx.drawImage(userImg, srcCx - srcRx, srcCy - srcRy, srcRx * 2, srcRy * 2, 0, 0, srcRx * 2, srcRy * 2);
                 
-                // 3. 대상 이미지의 아동 얼굴 좌표 및 크기에 맞게 크기 변환 및 페더링(그라데이션 감쇠) 적용
+                // 3. 투영 타겟 설정 및 정밀 매칭
                 const targetX = canvas.width * faceRect.x;
                 const targetY = canvas.height * faceRect.y;
                 const targetW = canvas.width * faceRect.w;
                 const targetH = canvas.height * faceRect.h;
                 
-                const featherCanvas = document.createElement('canvas');
-                featherCanvas.width = targetW;
-                featherCanvas.height = targetH;
-                const fCtx = featherCanvas.getContext('2d');
+                const projectiveCanvas = document.createElement('canvas');
+                projectiveCanvas.width = targetW;
+                projectiveCanvas.height = targetH;
+                const pCtx = projectiveCanvas.getContext('2d');
                 
-                // 타이트하게 잘라낸 사용자 얼굴을 대상 아동 얼굴 크기로 조절하여 그리기
-                fCtx.drawImage(croppedFaceCanvas, 0, 0, targetW, targetH);
+                pCtx.drawImage(croppedFaceCanvas, 0, 0, targetW, targetH);
                 
-                // 방사형 그라데이션을 이용하여 가장자리 100% 투명하게 페더링
-                fCtx.globalCompositeOperation = 'destination-in';
-                const grad = fCtx.createRadialGradient(
-                    targetW / 2, targetH / 2, targetW * 0.25, 
+                // 부드러운 합성용 마스크 (가장자리 페더링을 극대화)
+                pCtx.globalCompositeOperation = 'destination-in';
+                const grad = pCtx.createRadialGradient(
+                    targetW / 2, targetH / 2, targetW * 0.15, 
                     targetW / 2, targetH / 2, targetW * 0.5
                 );
-                grad.addColorStop(0, 'rgba(0, 0, 0, 1)');      // 중심부는 선명하게
-                grad.addColorStop(0.7, 'rgba(0, 0, 0, 0.85)');  // 경계부 부드러운 시작
-                grad.addColorStop(1, 'rgba(0, 0, 0, 0)');       // 가장자리는 완벽 투명
-                fCtx.fillStyle = grad;
-                fCtx.fillRect(0, 0, targetW, targetH);
+                grad.addColorStop(0, 'rgba(0, 0, 0, 1)');      // 이목구비 중심은 100% 선명
+                grad.addColorStop(0.5, 'rgba(0, 0, 0, 0.7)');   // 볼과 이마 쪽은 점점 투명하게
+                grad.addColorStop(1, 'rgba(0, 0, 0, 0)');       // 외곽 경계는 완전히 투명하게 날림
+                pCtx.fillStyle = grad;
+                pCtx.fillRect(0, 0, targetW, targetH);
                 
-                // 4. 최종 메인 이미지에 덮어쓰기
+                // 4. 대상 직업 이미지의 어린이 얼굴 피부와 이질감 없게 결합
                 ctx.save();
-                // 톤 보정 (주변 밝기에 맞게 아주 살짝 오버레이 피팅)
-                ctx.drawImage(featherCanvas, targetX, targetY);
+                
+                // 오버레이 및 밝기 최적화 (어린이 얼굴 피부 톤과 부드럽게 매치되도록 투명도 설정)
+                ctx.globalAlpha = 0.85; 
+                ctx.drawImage(projectiveCanvas, targetX, targetY);
+                
                 ctx.restore();
                 
                 resolve(canvas.toDataURL('image/jpeg'));
