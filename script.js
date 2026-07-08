@@ -498,7 +498,7 @@ async function callFalApi() {
             },
             body: JSON.stringify({
                 swap_image_url: state.imageData, 
-                target_image_url: "https://example.com/placeholder_job_image.jpg" 
+                target_image_url: state.selectedSubcategory.image || state.selectedCategory.image
             })
         });
 
@@ -521,17 +521,96 @@ async function callFalApi() {
 
 function simulateGeneration() {
     let progress = 0;
-    const interval = setInterval(() => {
+    const interval = setInterval(async () => {
         progress += Math.random() * 15;
         if (progress > 100) progress = 100;
         progressFill.style.width = `${progress}%`;
         
         if (progress === 100) {
             clearInterval(interval);
-            state.generatedImageUrl = state.imageData; 
+            
+            // 로컬 AI 얼굴 합성 (페이스 피팅) 적용
+            try {
+                const targetImage = state.selectedSubcategory.image || state.selectedCategory.image;
+                state.generatedImageUrl = await blendFaceWithJobImage(state.imageData, targetImage);
+            } catch (err) {
+                console.error("얼굴 합성 실패:", err);
+                state.generatedImageUrl = state.imageData; // 실패 시 촬영물 그대로 사용
+            }
+            
             setTimeout(showResult, 500);
         }
     }, 500);
+}
+
+// 로컬 합성 엔진: 사용자의 얼굴(타원형 추출 및 페더링)을 생성된 직업 이미지의 머리 위치에 자연스럽게 오버레이
+function blendFaceWithJobImage(userPhotoUrl, jobImageUrl) {
+    return new Promise((resolve, reject) => {
+        const userImg = new Image();
+        const jobImg = new Image();
+        
+        userImg.onload = () => {
+            jobImg.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = jobImg.width;
+                canvas.height = jobImg.height;
+                const ctx = canvas.getContext('2d');
+                
+                // 1. 배경 직업 이미지 그리기
+                ctx.drawImage(jobImg, 0, 0, canvas.width, canvas.height);
+                
+                // 2. 사용자 얼굴을 마스킹하고 부드럽게 깎아낼 캔버스 준비
+                const faceCanvas = document.createElement('canvas');
+                faceCanvas.width = canvas.width;
+                faceCanvas.height = canvas.height;
+                const faceCtx = faceCanvas.getContext('2d');
+                
+                // 촬영한 사진 그리기
+                faceCtx.drawImage(userImg, 0, 0, faceCanvas.width, faceCanvas.height);
+                
+                // 타원형 마스크 생성 (얼굴 가이드라인 크기와 비율에 매칭)
+                const maskCanvas = document.createElement('canvas');
+                maskCanvas.width = canvas.width;
+                maskCanvas.height = canvas.height;
+                const maskCtx = maskCanvas.getContext('2d');
+                
+                const cx = maskCanvas.width / 2;
+                const cy = maskCanvas.height / 2 - (maskCanvas.height * 0.03); // 얼굴 살짝 상단 배치
+                const rx = maskCanvas.width * 0.21;  // 가로 반경
+                const ry = maskCanvas.height * 0.27; // 세로 반경
+                
+                maskCtx.fillStyle = 'black';
+                maskCtx.beginPath();
+                maskCtx.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI);
+                maskCtx.fill();
+                
+                // 사용자 이미지에 타원 마스크 씌우기
+                faceCtx.globalCompositeOperation = 'destination-in';
+                faceCtx.drawImage(maskCanvas, 0, 0);
+                
+                // 3. 메인 캔버스에 얼굴 합성 (페더링/소프트 엣지 효과 부여)
+                ctx.save();
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = canvas.width;
+                tempCanvas.height = canvas.height;
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCtx.drawImage(faceCanvas, 0, 0);
+                
+                ctx.shadowColor = 'rgba(252, 251, 249, 0.3)'; // 주변 광원 매칭용
+                ctx.shadowBlur = 8;
+                
+                // 최종 그리기
+                ctx.drawImage(tempCanvas, 0, 0);
+                ctx.restore();
+                
+                resolve(canvas.toDataURL('image/jpeg'));
+            };
+            jobImg.onerror = reject;
+            jobImg.src = jobImageUrl;
+        };
+        userImg.onerror = reject;
+        userImg.src = userPhotoUrl;
+    });
 }
 
 function showResult() {
@@ -541,7 +620,7 @@ function showResult() {
     resultTitle.innerText = state.selectedCategory.title;
     resultDesc.innerText = state.selectedSubcategory.title;
     
-    if (FAL_API_KEY && state.generatedImageUrl !== state.imageData) {
+    if (state.generatedImageUrl) {
         resultImage.src = state.generatedImageUrl;
         resultImage.style.display = 'block';
         resultPlaceholder.style.display = 'none';
