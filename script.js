@@ -5,11 +5,11 @@ const FAL_API_KEY = "";
 const jobsData = [
     {
         id: "athlete", title: "국가대표 운동선수", image: "assets/main_athlete.jpg",
-        subcategories: [ { id: "taekwondo", title: "태권도" }, { id: "sudoku", title: "스도쿠 (마인드 스포츠)" }, { id: "esports", title: "e-스포츠" }, { id: "soccer-baseball", title: "축구/야구" } ]
+        subcategories: [ { id: "taekwondo", title: "태권도", image: "assets/sub_taekwondo.jpg" }, { id: "sudoku", title: "스도쿠 (마인드 스포츠)", image: "assets/sub_sudoku.jpg" }, { id: "esports", title: "e-스포츠", image: "assets/sub_esports.jpg" }, { id: "soccer-baseball", title: "축구/야구", image: "assets/sub_soccer_baseball.jpg" } ]
     },
     {
         id: "doctor", title: "스마트 병원 전문의", image: "assets/main_doctor.jpg",
-        subcategories: [ { id: "robot-surgeon", title: "로봇 수술 전문 외과의" }, { id: "bioprinting", title: "3D 바이오 프린팅 전문가" }, { id: "space-doctor", title: "우주 항공 전문의" }, { id: "digital-therapist", title: "디지털 심리 치료사" } ]
+        subcategories: [ { id: "robot-surgeon", title: "로봇 수술 전문 외과의", image: "assets/sub_robot_surgeon.jpg" }, { id: "bioprinting", title: "3D 바이오 프린팅 전문가", image: "assets/sub_bioprinting.jpg" }, { id: "space-doctor", title: "우주 항공 전문의" }, { id: "digital-therapist", title: "디지털 심리 치료사" } ]
     },
     {
         id: "creator", title: "스타 크리에이터", image: "assets/main_creator.jpg",
@@ -302,11 +302,12 @@ function showSubcategorySelection() {
 
 function renderSubcategories() {
     subcategoryGrid.innerHTML = '';
-    const subs = state.selectedCategory.subcategories;
-    subs.forEach(sub => {
+    state.selectedCategory.subcategories.forEach(sub => {
         const card = document.createElement('div');
         card.className = 'job-card';
-        card.innerHTML = `<div class="title">${sub.title}</div>`;
+        card.innerHTML = sub.image 
+            ? `<img src="${sub.image}" class="job-image" alt="${sub.title}"><div class="title-overlay">${sub.title}</div>`
+            : `<span class="icon">🔹</span><div class="title">${sub.title}</div>`;
         card.addEventListener('click', () => {
             state.selectedSubcategory = sub;
             showCameraCapture();
