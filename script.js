@@ -390,7 +390,17 @@ async function showCameraCapture() {
         video.srcObject = state.stream;
     } catch (err) {
         console.error("최종 카메라 구동 실패:", err);
-        alert(`카메라를 켜는 데 실패했습니다 (${err.name}).\n임시적인 하드웨어 지연일 수 있으니 [확인]을 누르고 한 번 더 카드를 클릭해 보시거나, 웹캠 연결을 확인해 주세요.`);
+        
+        let deviceInfo = "조회 불가";
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const videoDevices = devices.filter(device => device.kind === 'videoinput');
+            deviceInfo = `${videoDevices.length}개 (${videoDevices.map(d => d.label || '이름 없음').join(', ') || '없음'})`;
+        } catch (e) {
+            deviceInfo = `조회 에러 (${e.name})`;
+        }
+
+        alert(`카메라를 켜는 데 실패했습니다 (${err.name}).\n브라우저 인식 카메라 수: ${deviceInfo}\n\n[해결 방법]\n1. 윈도우 설정 -> 개인 정보 -> 카메라에서 '앱에서 카메라에 액세스하도록 허용'이 켜져 있는지 확인해 주세요.\n2. 웹캠 USB 선을 완전히 뺐다가 다시 꽂은 후 새로고침해 주세요.`);
     }
 }
 
