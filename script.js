@@ -342,7 +342,27 @@ async function showCameraCapture() {
         video.srcObject = state.stream;
     } catch (err) {
         console.error("Camera error:", err);
-        alert(`카메라 접근 오류 (${err.name}):\n1. 다른 프로그램(줌, 크롬 설정창 등)이 카메라를 사용 중이면 꺼주세요.\n2. 카메라 접근 권한이 허용되어 있는지 확인해 주세요.`);
+        alert(`카메라 접근 오류 (${err.name}):\n카메라를 찾을 수 없거나 접근이 차단되었습니다.\n(테스트를 위해 카메라 없이 가상 화면으로 진행합니다.)`);
+        
+        // Fallback: Create a mock video stream using Canvas
+        const canvas = document.createElement('canvas');
+        canvas.width = 640;
+        canvas.height = 480;
+        const ctx = canvas.getContext('2d');
+        
+        setInterval(() => {
+            ctx.fillStyle = '#e2e8f0';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#475569';
+            ctx.font = '24px "Noto Sans KR", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('카메라를 찾을 수 없습니다', canvas.width/2, canvas.height/2 - 20);
+            ctx.fillText('(테스트 모드 진행 중)', canvas.width/2, canvas.height/2 + 20);
+        }, 1000);
+        
+        state.stream = canvas.captureStream(30);
+        video.srcObject = state.stream;
+        video.play();
     }
 }
 
