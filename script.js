@@ -481,19 +481,56 @@ async function generateProfile() {
     }
 }
 
+// Fal.ai 공식 업로드 API를 사용하여 캡처한 이미지 바이너리를 클라우드 스토리지에 업로드
+async function uploadToFal(base64Data) {
+    const response = await fetch(base64Data);
+    const blob = await response.blob();
+    
+    // 1. 업로드 전용 일회용 URL 요청
+    const startRes = await fetch("https://queue.fal.run/upload/start", {
+        method: "POST",
+        headers: {
+            "Authorization": `Key ${FAL_API_KEY}`,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            file_name: "face.jpg",
+            content_type: "image/jpeg"
+        })
+    });
+    if (!startRes.ok) throw new Error("Fal.ai 스토리지 생성 실패");
+    const startData = await startRes.json();
+    
+    // 2. 일회용 URL에 바이너리 파일 업로드 (PUT 요청)
+    const uploadRes = await fetch(startData.upload_url, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "image/jpeg"
+        },
+        body: blob
+    });
+    if (!uploadRes.ok) throw new Error("Fal.ai 파일 전송 실패");
+    
+    return startData.file_url; // 클라우드 퍼블릭 이미지 URL 반환
+}
+
 async function callFalApi() {
     let progress = 0;
     const interval = setInterval(() => {
-        progress += 5;
+        progress += 4;
         if(progress > 90) progress = 90;
         progressFill.style.width = `${progress}%`;
-    }, 500);
+    }, 400);
 
     try {
         const targetPath = state.selectedSubcategory.image || state.selectedCategory.image;
         const targetAbsoluteUrl = new URL(targetPath, window.location.href).href;
         
-        console.log("AI 합성 요청 전송중...", { targetAbsoluteUrl });
+        console.log("1단계: 사용자 사진 클라우드 업로드 중...");
+        const publicUserImageUrl = await uploadToFal(state.imageData);
+        console.log("업로드 완료 URL:", publicUserImageUrl);
+
+        console.log("2단계: AI 페이스 스왑 연동 시작...", { targetAbsoluteUrl });
 
         const response = await fetch("https://fal.run/fal-ai/face-swap", {
             method: "POST",
@@ -502,25 +539,34 @@ async function callFalApi() {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                swap_image_url: state.imageData, 
+                swap_image_url: publicUserImageUrl, 
                 target_image_url: targetAbsoluteUrl
             })
         });
 
-        if (!response.ok) throw new Error("API Request Failed");
+        if (!response.ok) {
+            const errBody = await response.text();
+            throw new Error(`AI 서버 오류: ${response.status} - ${errBody}`);
+        }
+        
         const data = await response.json();
         
         clearInterval(interval);
         progressFill.style.width = "100%";
         
-        state.generatedImageUrl = data.image ? data.image.url : state.imageData;
+        if (data.image && data.image.url) {
+            state.generatedImageUrl = data.image.url;
+        } else {
+            throw new Error("생성된 이미지 URL이 유효하지 않습니다.");
+        }
         
         setTimeout(showResult, 500);
 
     } catch (error) {
-        console.error(error);
+        console.error("AI 합성 최종 실패:", error);
         clearInterval(interval);
-        simulateGeneration(); 
+        alert(`AI 합성 서비스 호출에 실패했습니다.\n\n[오류 메시지]\n${error.message}\n\n* API 키의 충전 크레딧이 소진되었거나 서버 상태를 확인해 주세요.`);
+        switchSection(sections.loading, sections.capture); // 촬영 화면으로 복귀
     }
 }
 
