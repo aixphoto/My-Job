@@ -104,20 +104,20 @@ header {
 }
 
 /* Start Overlay */
+/* Start Overlay - Mystical Dark Kiosk Theme */
 .start-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(252, 251, 249, 0.95);
-    backdrop-filter: blur(10px);
+    background: radial-gradient(circle at center, #1b0d2a 0%, #030107 100%);
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
     z-index: 1000;
     transition: opacity 0.5s ease;
+    overflow: hidden;
 }
 
 .start-overlay.hidden {
@@ -125,16 +125,207 @@ header {
     pointer-events: none;
 }
 
-.start-overlay h1 {
-    font-size: 4rem;
-    margin-bottom: 1rem;
-    font-family: 'Orbitron', sans-serif;
+/* Kiosk Cabinet Frame */
+.kiosk-cabinet {
+    width: 380px;
+    height: 600px;
+    background: #2b0c11; /* Deep burgundy wood feeling */
+    border: 8px solid #3d141b;
+    border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.8), 
+                0 0 30px rgba(244, 114, 182, 0.2), 
+                inset 0 0 40px rgba(0,0,0,0.9);
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    position: relative;
+    box-sizing: border-box;
 }
 
-.start-overlay p {
-    font-size: 1.5rem;
-    color: var(--text-primary);
-    margin-bottom: 2rem;
+.kiosk-cabinet::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    border: 3px double #ffd700; /* Gold ornamental border */
+    border-radius: 6px;
+    pointer-events: none;
+    margin: 4px;
+}
+
+/* Kiosk Header (Zoltar style neon board) */
+.kiosk-header {
+    text-align: center;
+    border-bottom: 4px double #ffd700;
+    padding-bottom: 0.8rem;
+    margin-bottom: 1rem;
+}
+
+.kiosk-header h2 {
+    font-family: 'Cinzel', 'Georgia', serif;
+    font-size: 2.2rem;
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.8), 0 0 20px #ff3b30;
+    margin: 0;
+    letter-spacing: 4px;
+    font-weight: 700;
+    animation: neonPulse 2s infinite alternate;
+}
+
+.kiosk-sub {
+    font-size: 0.8rem;
+    color: #f472b6;
+    letter-spacing: 2px;
+    margin-top: 0.3rem;
+    text-transform: uppercase;
+}
+
+/* Kiosk Glass Viewport */
+.kiosk-glass {
+    flex: 1;
+    background: radial-gradient(circle at center, rgba(139, 92, 246, 0.2) 0%, rgba(5, 5, 10, 0.95) 100%);
+    border: 3px solid #ffd700;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.9);
+}
+
+.kiosk-glass::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -50%;
+    width: 200%; height: 100%;
+    background: linear-gradient(115deg, rgba(255,255,255,0.08) 30%, rgba(255,255,255,0) 45%);
+    transform: rotate(-10deg);
+}
+
+/* Magic Crystal Ball inside Kiosk */
+.magic-crystal {
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9) 0%, rgba(139, 92, 246, 0.7) 40%, rgba(244, 114, 182, 0.3) 70%, rgba(5, 5, 10, 1) 100%);
+    border-radius: 50%;
+    position: relative;
+    box-shadow: 0 0 45px rgba(139, 92, 246, 0.9), 
+                0 0 75px rgba(244, 114, 182, 0.6), 
+                inset -5px -5px 25px rgba(0,0,0,0.9);
+    animation: floatBall 4s ease-in-out infinite;
+    z-index: 2;
+}
+
+.crystal-base {
+    width: 90px;
+    height: 25px;
+    background: linear-gradient(to right, #8a7342, #ffd700, #8a7342);
+    border-radius: 4px;
+    position: absolute;
+    bottom: 22%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-top: 2px solid #ffeb60;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.7);
+    z-index: 1;
+}
+
+/* Kiosk Controls */
+.kiosk-controls {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 1.2rem;
+    gap: 0.6rem;
+}
+
+.kiosk-hint {
+    color: #ffd700;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    margin: 0;
+    text-shadow: 0 0 5px rgba(255,215,0,0.5);
+    animation: blinkText 1.5s infinite;
+}
+
+/* Coin Button */
+.coin-btn {
+    width: 170px;
+    padding: 0.8rem 1.2rem;
+    background: linear-gradient(135deg, #ffd700 0%, #b89100 100%);
+    border: 3px solid #ffeb60;
+    border-radius: 50px;
+    color: #2b0c11;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'Noto Sans KR', sans-serif;
+    box-shadow: 0 5px 0 #7a6000, 
+                0 8px 15px rgba(0,0,0,0.5), 
+                0 0 15px rgba(255, 215, 0, 0.5);
+    transition: all 0.1s ease;
+    position: relative;
+    outline: none;
+}
+
+.coin-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 2px 0 #7a6000, 
+                0 4px 8px rgba(0,0,0,0.5), 
+                0 0 10px rgba(255, 215, 0, 0.7);
+}
+
+/* Coin Slot */
+.coin-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+    margin-top: 0.2rem;
+}
+
+.slot-entry {
+    width: 45px;
+    height: 10px;
+    background: #111;
+    border: 2px solid #ffd700;
+    box-shadow: 0 0 8px #ff3b30, inset 0 0 4px #000;
+    border-radius: 2px;
+    position: relative;
+}
+
+.slot-entry::after {
+    content: '';
+    position: absolute;
+    width: 4px;
+    height: 6px;
+    background: #ff3b30;
+    box-shadow: 0 0 6px #ff3b30;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+}
+
+.coin-slot span {
+    font-size: 0.6rem;
+    color: #8b9bb4;
+    letter-spacing: 1px;
+}
+
+/* Animations */
+@keyframes neonPulse {
+    0% { text-shadow: 0 0 10px rgba(255,215,0,0.8), 0 0 20px #ff3b30, 0 0 30px #ff3b30; }
+    100% { text-shadow: 0 0 15px rgba(255,215,0,1), 0 0 30px #ff3b30, 0 0 40px #ff3b30, 0 0 60px #ff3b30; }
+}
+
+@keyframes floatBall {
+    0% { transform: translateY(0px) scale(1); }
+    50% { transform: translateY(-6px) scale(1.03); }
+    100% { transform: translateY(0px) scale(1); }
+}
+
+@keyframes blinkText {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
 }
 
 /* Glassmorphism Panels */

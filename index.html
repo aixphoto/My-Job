@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wannabee - AI 미래 직업 프로필</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Cinzel:wght@700&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
     <!-- QR Code Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
@@ -17,9 +17,27 @@
 
     <!-- Start Overlay to allow audio playback -->
     <div id="start-overlay" class="start-overlay">
-        <h1>WANNA<span class="neon-text">BEE</span></h1>
-        <p>화면을 클릭하여 마술상자를 열어주세요.</p>
-        <button id="btn-start-app" class="cyber-btn primary">시작하기</button>
+        <div class="kiosk-cabinet">
+            <div class="kiosk-header">
+                <h2>WANNABEE</h2>
+                <div class="kiosk-sub">YOUR WISH IS GRANTED</div>
+            </div>
+            
+            <div class="kiosk-glass">
+                <div class="magic-crystal"></div>
+                <div class="crystal-base"></div>
+                <div class="mystic-particles"></div>
+            </div>
+            
+            <div class="kiosk-controls">
+                <p class="kiosk-hint">동전을 넣고 소원을 빌어보세요</p>
+                <button id="btn-start-app" class="coin-btn">시작하기</button>
+                <div class="coin-slot">
+                    <div class="slot-entry"></div>
+                    <span>25¢ INSERT COIN</span>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Main App UI (Hidden during print) -->
