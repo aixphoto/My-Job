@@ -338,31 +338,45 @@ async function showCameraCapture() {
     speak(`${state.selectedSubcategory.title} 직업을 선택하셨군요. 그럼 당신의 현재 모습을 촬영하겠습니다.`);
 
     try {
-        state.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+        // 카메라 무조건 살리기: 연결된 모든 카메라를 찾아서 될 때까지 시도합니다.
+        let stream = null;
+        let lastErr = null;
+        
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const videoDevices = devices.filter(device => device.kind === 'videoinput');
+            
+            if (videoDevices.length > 0) {
+                // 특정 기기 ID로 하나씩 시도
+                for (const device of videoDevices) {
+                    try {
+                        stream = await navigator.mediaDevices.getUserMedia({ 
+                            video: { deviceId: { exact: device.deviceId } } 
+                        });
+                        if (stream) {
+                            console.log("카메라 연결 성공:", device.label);
+                            break;
+                        }
+                    } catch (e) {
+                        lastErr = e;
+                        console.warn(`카메라 연결 실패 (${device.label}):`, e);
+                    }
+                }
+            }
+        } catch(enumErr) {
+            console.warn("기기 목록을 가져올 수 없습니다:", enumErr);
+        }
+        
+        // 위 방법이 실패했거나 목록을 못 가져온 경우 기본 카메라 강제 요청
+        if (!stream) {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        }
+
+        state.stream = stream;
         video.srcObject = state.stream;
     } catch (err) {
         console.error("Camera error:", err);
-        alert(`카메라 접근 오류 (${err.name}):\n카메라를 찾을 수 없거나 접근이 차단되었습니다.\n(테스트를 위해 카메라 없이 가상 화면으로 진행합니다.)`);
-        
-        // Fallback: Create a mock video stream using Canvas
-        const canvas = document.createElement('canvas');
-        canvas.width = 640;
-        canvas.height = 480;
-        const ctx = canvas.getContext('2d');
-        
-        setInterval(() => {
-            ctx.fillStyle = '#e2e8f0';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#475569';
-            ctx.font = '24px "Noto Sans KR", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText('카메라를 찾을 수 없습니다', canvas.width/2, canvas.height/2 - 20);
-            ctx.fillText('(테스트 모드 진행 중)', canvas.width/2, canvas.height/2 + 20);
-        }, 1000);
-        
-        state.stream = canvas.captureStream(30);
-        video.srcObject = state.stream;
-        video.play();
+        alert(`카메라를 켜는 데 실패했습니다 (${err.name}).\n웹캠 선을 뺐다가 다시 꽂아보시거나, 크롬 브라우저 창을 완전히 껐다가 다시 실행해 주세요! (이 서비스는 카메라가 필수입니다.)`);
     }
 }
 
