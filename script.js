@@ -543,8 +543,8 @@ function simulateGeneration() {
     }, 500);
 }
 
-// 로컬 합성 엔진: 사용자의 얼굴(타원형 추출 및 페더링)을 생성된 직업 이미지의 머리 위치에 자연스럽게 오버레이
-function blendFaceWithJobImage(userPhotoUrl, jobImageUrl) {
+// 로컬 합성 엔진: 사용자의 얼굴 이목구비만 타이트하게 크롭하여, 대상 이미지의 머리 크기와 위치에 맞추어 부드럽게 페더링 합성
+function blendFaceWithJobImage(userPhotoUrl, jobImageUrl, faceRect = { x: 0.35, y: 0.22, w: 0.30, h: 0.32 }) {
     return new Promise((resolve, reject) => {
         const userImg = new Image();
         const jobImg = new Image();
@@ -559,48 +559,53 @@ function blendFaceWithJobImage(userPhotoUrl, jobImageUrl) {
                 // 1. 배경 직업 이미지 그리기
                 ctx.drawImage(jobImg, 0, 0, canvas.width, canvas.height);
                 
-                // 2. 사용자 얼굴을 마스킹하고 부드럽게 깎아낼 캔버스 준비
-                const faceCanvas = document.createElement('canvas');
-                faceCanvas.width = canvas.width;
-                faceCanvas.height = canvas.height;
-                const faceCtx = faceCanvas.getContext('2d');
+                // 2. 사용자 얼굴에서 배경(의자 등)과 머리카락을 제외하고 "이목구비만 타이트하게" 크롭
+                const srcCx = userImg.width / 2;
+                const srcCy = userImg.height / 2 - (userImg.height * 0.02);
+                const srcRx = userImg.width * 0.16;  // 좁게 설정하여 의자/귀 차단
+                const srcRy = userImg.height * 0.22; // 좁게 설정하여 머리카락/목 차단
                 
-                // 촬영한 사진 그리기
-                faceCtx.drawImage(userImg, 0, 0, faceCanvas.width, faceCanvas.height);
+                const croppedFaceCanvas = document.createElement('canvas');
+                croppedFaceCanvas.width = srcRx * 2;
+                croppedFaceCanvas.height = srcRy * 2;
+                const cfCtx = croppedFaceCanvas.getContext('2d');
                 
-                // 타원형 마스크 생성 (얼굴 가이드라인 크기와 비율에 매칭)
-                const maskCanvas = document.createElement('canvas');
-                maskCanvas.width = canvas.width;
-                maskCanvas.height = canvas.height;
-                const maskCtx = maskCanvas.getContext('2d');
+                // 타원형 클리핑 마스크 적용
+                cfCtx.beginPath();
+                cfCtx.ellipse(srcRx, srcRy, srcRx, srcRy, 0, 0, 2 * Math.PI);
+                cfCtx.clip();
+                cfCtx.drawImage(userImg, srcCx - srcRx, srcCy - srcRy, srcRx * 2, srcRy * 2, 0, 0, srcRx * 2, srcRy * 2);
                 
-                const cx = maskCanvas.width / 2;
-                const cy = maskCanvas.height / 2 - (maskCanvas.height * 0.03); // 얼굴 살짝 상단 배치
-                const rx = maskCanvas.width * 0.21;  // 가로 반경
-                const ry = maskCanvas.height * 0.27; // 세로 반경
+                // 3. 대상 이미지의 아동 얼굴 좌표 및 크기에 맞게 크기 변환 및 페더링(그라데이션 감쇠) 적용
+                const targetX = canvas.width * faceRect.x;
+                const targetY = canvas.height * faceRect.y;
+                const targetW = canvas.width * faceRect.w;
+                const targetH = canvas.height * faceRect.h;
                 
-                maskCtx.fillStyle = 'black';
-                maskCtx.beginPath();
-                maskCtx.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI);
-                maskCtx.fill();
+                const featherCanvas = document.createElement('canvas');
+                featherCanvas.width = targetW;
+                featherCanvas.height = targetH;
+                const fCtx = featherCanvas.getContext('2d');
                 
-                // 사용자 이미지에 타원 마스크 씌우기
-                faceCtx.globalCompositeOperation = 'destination-in';
-                faceCtx.drawImage(maskCanvas, 0, 0);
+                // 타이트하게 잘라낸 사용자 얼굴을 대상 아동 얼굴 크기로 조절하여 그리기
+                fCtx.drawImage(croppedFaceCanvas, 0, 0, targetW, targetH);
                 
-                // 3. 메인 캔버스에 얼굴 합성 (페더링/소프트 엣지 효과 부여)
+                // 방사형 그라데이션을 이용하여 가장자리 100% 투명하게 페더링
+                fCtx.globalCompositeOperation = 'destination-in';
+                const grad = fCtx.createRadialGradient(
+                    targetW / 2, targetH / 2, targetW * 0.25, 
+                    targetW / 2, targetH / 2, targetW * 0.5
+                );
+                grad.addColorStop(0, 'rgba(0, 0, 0, 1)');      // 중심부는 선명하게
+                grad.addColorStop(0.7, 'rgba(0, 0, 0, 0.85)');  // 경계부 부드러운 시작
+                grad.addColorStop(1, 'rgba(0, 0, 0, 0)');       // 가장자리는 완벽 투명
+                fCtx.fillStyle = grad;
+                fCtx.fillRect(0, 0, targetW, targetH);
+                
+                // 4. 최종 메인 이미지에 덮어쓰기
                 ctx.save();
-                const tempCanvas = document.createElement('canvas');
-                tempCanvas.width = canvas.width;
-                tempCanvas.height = canvas.height;
-                const tempCtx = tempCanvas.getContext('2d');
-                tempCtx.drawImage(faceCanvas, 0, 0);
-                
-                ctx.shadowColor = 'rgba(252, 251, 249, 0.3)'; // 주변 광원 매칭용
-                ctx.shadowBlur = 8;
-                
-                // 최종 그리기
-                ctx.drawImage(tempCanvas, 0, 0);
+                // 톤 보정 (주변 밝기에 맞게 아주 살짝 오버레이 피팅)
+                ctx.drawImage(featherCanvas, targetX, targetY);
                 ctx.restore();
                 
                 resolve(canvas.toDataURL('image/jpeg'));
