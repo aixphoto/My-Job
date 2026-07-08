@@ -17,25 +17,20 @@
 
     <!-- Start Overlay to allow audio playback -->
     <div id="start-overlay" class="start-overlay">
-        <div class="kiosk-cabinet">
-            <div class="kiosk-header">
-                <h2>WANNABEE</h2>
-                <div class="kiosk-sub">YOUR WISH IS GRANTED</div>
-            </div>
-            
-            <div class="kiosk-glass">
-                <div class="magic-crystal"></div>
-                <div class="crystal-base"></div>
-                <div class="mystic-particles"></div>
-            </div>
-            
-            <div class="kiosk-controls">
-                <p class="kiosk-hint">동전을 넣고 소원을 빌어보세요</p>
-                <button id="btn-start-app" class="coin-btn">시작하기</button>
-                <div class="coin-slot">
-                    <div class="slot-entry"></div>
-                    <span>25¢ INSERT COIN</span>
+        <div class="genie-container">
+            <div class="genie-image-wrapper">
+                <img src="assets/genie_kiosk.jpg" alt="Genie holding Magic Box" class="genie-img" onerror="this.style.display='none'; document.querySelector('.genie-placeholder').style.display='flex';">
+                <div class="genie-placeholder">
+                    <span class="genie-emoji">🧞‍♂️</span>
+                    <span class="magic-lamp">🔮</span>
                 </div>
+                <div class="genie-glow-ring"></div>
+            </div>
+            
+            <div class="genie-content">
+                <h1 class="genie-logo">WANNA<span class="gold-text">BEE</span></h1>
+                <p class="genie-quote">"인자한 지니가 당신의 미래 소원을 들어줍니다"</p>
+                <button id="btn-start-app" class="genie-btn">소원 빌기 시작</button>
             </div>
         </div>
     </div>
