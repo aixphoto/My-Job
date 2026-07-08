@@ -342,9 +342,7 @@ async function showCameraCapture() {
         video.srcObject = state.stream;
     } catch (err) {
         console.error("Camera error:", err);
-        // Browser security prevents JS from forcing camera permissions. 
-        // The user must manually allow it in the browser popup.
-        alert("브라우저 팝업이나 설정에서 카메라 접근 권한을 반드시 허용해 주세요.");
+        alert(`카메라 접근 오류 (${err.name}):\n1. 다른 프로그램(줌, 크롬 설정창 등)이 카메라를 사용 중이면 꺼주세요.\n2. 카메라 접근 권한이 허용되어 있는지 확인해 주세요.`);
     }
 }
 
