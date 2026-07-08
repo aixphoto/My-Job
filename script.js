@@ -337,53 +337,60 @@ async function showCameraCapture() {
     
     speak(`${state.selectedSubcategory.title} 직업을 선택하셨군요. 그럼 당신의 현재 모습을 촬영하겠습니다.`);
 
-    // 자체 중복 락 방지: 기존 스트림이 남아있다면 먼저 완전히 멈춥니다.
+    // 자체 중복 락 방지: 기존 스트림이 있으면 무조건 먼저 정지
     stopCamera();
 
+    // 재시도 헬퍼 함수 (카메라 하드웨어가 깨어나는 데 시간이 걸리거나 일시적 오류가 있을 때 강제로 반복 시도)
+    async function getCameraStream(constraints, retries = 3, delay = 300) {
+        for (let i = 0; i < retries; i++) {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                if (stream) return stream;
+            } catch (err) {
+                console.warn(`카메라 연결 시도 ${i + 1}회 실패:`, err);
+                if (i === retries - 1) throw err; // 마지막 시도도 실패하면 에러 투척
+                await new Promise(resolve => setTimeout(resolve, delay)); // 대기 후 재시도
+            }
+        }
+    }
+
     try {
-        // 카메라 무조건 살리기: 연결된 모든 카메라를 찾아서 될 때까지 시도합니다.
         let stream = null;
-        let lastErr = null;
         
         try {
             const devices = await navigator.mediaDevices.enumerateDevices();
             const videoDevices = devices.filter(device => device.kind === 'videoinput');
             
             if (videoDevices.length > 0) {
-                // 특정 기기 ID로 하나씩 시도
+                // exact(적합성 강제) 제약을 제거하여 호환성 극대화 (ideal 매칭 사용)
                 for (const device of videoDevices) {
                     try {
-                        stream = await navigator.mediaDevices.getUserMedia({ 
-                            video: { deviceId: { exact: device.deviceId } } 
+                        stream = await getCameraStream({ 
+                            video: { deviceId: device.deviceId } 
                         });
                         if (stream) {
                             console.log("카메라 연결 성공:", device.label);
                             break;
                         }
                     } catch (e) {
-                        lastErr = e;
-                        console.warn(`카메라 연결 실패 (${device.label}):`, e);
+                        console.warn(`카메라 기기 개별 시도 실패 (${device.label}):`, e);
                     }
                 }
             }
         } catch(enumErr) {
-            console.warn("기기 목록을 가져올 수 없습니다:", enumErr);
+            console.warn("기기 목록 조회 실패:", enumErr);
         }
         
-        // 위 방법이 실패했거나 목록을 못 가져온 경우 기본 카메라 강제 요청
+        // 특정 기기로 실패했거나 목록을 못 가져온 경우, 가장 기본 사양으로 재시도
         if (!stream) {
-            stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+            stream = await getCameraStream({ video: true, audio: false });
         }
 
         state.stream = stream;
         video.srcObject = state.stream;
     } catch (err) {
-        console.error("Camera error:", err);
-        if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
-            alert("카메라 사용 중 오류:\n다른 프로그램(줌, OBS, 디스코드, 또는 크롬 다른 설정 탭 등)이 카메라를 사용 중입니다.\n카메라를 쓰고 있는 다른 프로그램을 종료하신 후 다시 시도해 주세요!");
-        } else {
-            alert(`카메라를 켜는 데 실패했습니다 (${err.name}).\n웹캠 선을 뺐다가 다시 꽂아보시거나, 크롬 브라우저 창을 완전히 껐다가 다시 실행해 주세요!`);
-        }
+        console.error("최종 카메라 구동 실패:", err);
+        alert(`카메라를 켜는 데 실패했습니다 (${err.name}).\n임시적인 하드웨어 지연일 수 있으니 [확인]을 누르고 한 번 더 카드를 클릭해 보시거나, 웹캠 연결을 확인해 주세요.`);
     }
 }
 
